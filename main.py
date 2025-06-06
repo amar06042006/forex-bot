@@ -35,17 +35,17 @@ def analyze(pair):
     if df.empty or len(df) < 30:
         return None
     df = calculate_indicators(df)
-    latest = df.iloc[[-1]]
+    latest = df.iloc[[-1]]  # dataframe بطول 1
 
     if latest[['EMA9', 'EMA21', 'MACD', 'Signal', 'RSI']].isnull().any().any():
         return None
 
-    ema9 = latest['EMA9'].item()
-    ema21 = latest['EMA21'].item()
-    macd = latest['MACD'].item()
-    signal = latest['Signal'].item()
-    rsi = latest['RSI'].item()
-    price = latest['Close'].item()
+    ema9 = latest['EMA9'].iloc[0]
+    ema21 = latest['EMA21'].iloc[0]
+    macd = latest['MACD'].iloc[0]
+    signal = latest['Signal'].iloc[0]
+    rsi = latest['RSI'].iloc[0]
+    price = latest['Close'].iloc[0]
 
     buy = ema9 > ema21 and macd > signal and rsi > 50
     sell = ema9 < ema21 and macd < signal and rsi < 50
