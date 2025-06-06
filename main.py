@@ -35,16 +35,17 @@ def analyze(pair):
     if df.empty or len(df) < 30:
         return None
     df = calculate_indicators(df)
-    latest = df.iloc[-1]
-    if pd.isna(latest[['EMA9', 'EMA21', 'MACD', 'Signal', 'RSI']]).any():
+    latest = df.iloc[[-1]]
+
+    if latest[['EMA9', 'EMA21', 'MACD', 'Signal', 'RSI']].isnull().any().any():
         return None
 
-    ema9 = latest['EMA9']
-    ema21 = latest['EMA21']
-    macd = latest['MACD']
-    signal = latest['Signal']
-    rsi = latest['RSI']
-    price = latest['Close']
+    ema9 = latest['EMA9'].item()
+    ema21 = latest['EMA21'].item()
+    macd = latest['MACD'].item()
+    signal = latest['Signal'].item()
+    rsi = latest['RSI'].item()
+    price = latest['Close'].item()
 
     buy = ema9 > ema21 and macd > signal and rsi > 50
     sell = ema9 < ema21 and macd < signal and rsi < 50
@@ -76,16 +77,13 @@ async def send_signal_and_result():
             results.append(result)
     if results:
         best = sorted(results, key=lambda x: x['confidence'], reverse=True)[0]
-        # إرسال الإشارة قبل دقيقة من الصفقة
         entry_time = (datetime.now() + pd.Timedelta(minutes=1)).strftime("%H:%M:%S")
         msg = f"📢 إشارة تداول بعد دقيقة\nزوج: {best['pair']}\nالاتجاه: {best['signal']}\nالسعر الحالي: {best['price']}\nالثقة: {best['confidence']}%\nوقت الدخول: {entry_time}\nمدة الصفقة: 1 دقيقة"
         await bot.send_message(CHANNEL_ID, msg)
 
-        # الانتظار دقيقة (وقت الدخول)
+        await asyncio.sleep(60)
         await asyncio.sleep(60)
 
-        # ثم انتظار دقيقة أخرى لحساب النتيجة
-        await asyncio.sleep(60)
         df_after = yf.download(best['pair'] + "=X", interval="1m", period="5m", auto_adjust=True)
         if df_after.empty or len(df_after) < 2:
             await bot.send_message(CHANNEL_ID, f"❓ لم يتمكن البوت من تحديد نتيجة الصفقة.")
