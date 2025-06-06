@@ -37,7 +37,7 @@ def analyze(pair):
     df = calculate_indicators(df)
     latest = df.iloc[-1]
 
-    if pd.isna(latest[['EMA9', 'EMA21', 'MACD', 'Signal', 'RSI']]).any():
+    if pd.isna(latest[['EMA9', 'EMA21', 'MACD', 'Signal', 'RSI']]).any().any():
         return None
 
     ema9 = latest['EMA9']
